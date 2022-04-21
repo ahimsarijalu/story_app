@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Dicoding Story App</string>
+    <string name="logo">App Logo</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="btn_disabled_text">Fill the form</string>
+    <string name="email_hint">E-mail</string>
+    <string name="password_hint">Password</string>
+    <string name="email_error">Invalid e-mail</string>
+    <string name="password_error">Password must contain 6 or more characters</string>
+    <string name="or">OR</string>
+    <string name="name_hint">Name</string>
+    <string name="user_story">User Story</string>
+    <string name="logout">Logout</string>
+    <string name="description">Picture description</string>
+    <string name="add_story">Add Story</string>
+    <string name="permission_not_granted">Permissions not granted by the user.</string>
+    <string name="capture_image">Capture Image</string>
+    <string name="switch_camera">Switch Camera</string>
+    <string name="choose_a_picture">Choose a Picture</string>
+    <string name="failed_launch_camera">Failed to launch a camera</string>
+    <string name="open_camera">Open Camera</string>
+    <string name="open_galery">Open Galery</string>
+    <string name="preview_image">Preview Image</string>
+    <string name="upload">Upload</string>
+    <string name="choose_an_image">Please choose an image</string>
+    <string name="write_description">Write a description</string>
+    <string name="logout_question">Do you want to logout?</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="story_not_found">Story not found</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dicoding Story App</string>
+    <string name="logo">Logo Aplikasi</string>
+    <string name="login">Masuk</string>
+    <string name="sign_up">Mendaftar</string>
+    <string name="btn_disabled_text">Isi formulir</string>
+    <string name="email_hint">E-mail</string>
+    <string name="password_hint">Kata Sandi</string>
+    <string name="email_error">E-mail tidak valid</string>
+    <string name="password_error">Password seharusnya terdiri dari 6 atau lebih karakter</string>
+    <string name="or">ATAU</string>
+    <string name="name_hint">Nama</string>
+    <string name="user_story">Cerita Pengguna</string>
+    <string name="logout">Keluar</string>
+    <string name="description">Deskripsi gambar</string>
+    <string name="add_story">Tambahkan Cerita</string>
+    <string name="permission_not_granted">Izin tidak diberikan oleh pengguna.</string>
+    <string name="capture_image">Tangkap Gambar</string>
+    <string name="switch_camera">Ubah Kamera</string>
+    <string name="choose_a_picture">Pilih Gambar</string>
+    <string name="failed_launch_camera">Gagal membuka kamera</string>
+    <string name="open_camera">Buka Kamera</string>
+    <string name="open_galery">Buka Galeri</string>
+    <string name="preview_image">Gambar Pratinjau</string>
+    <string name="upload">Unggah</string>
+    <string name="choose_an_image">Mohon pilih gambar</string>
+    <string name="write_description">Tuliskan deskripsi</string>
+    <string name="logout_question">Apakah Anda ingin keluar?</string>
+    <string name="cancel_text">Batal</string>
+    <string name="story_not_found">Tidak ada Cerita ditemukan</string>
+</resources>
