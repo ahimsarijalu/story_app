@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
@@ -17,13 +16,14 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ahimsarijalu.storyapp.R
-import com.ahimsarijalu.storyapp.data.model.UserPreference
+import com.ahimsarijalu.storyapp.data.local.model.UserPreference
 import com.ahimsarijalu.storyapp.data.remote.response.ListStoryItem
 import com.ahimsarijalu.storyapp.databinding.ActivityMainBinding
 import com.ahimsarijalu.storyapp.ui.ViewModelFactory
 import com.ahimsarijalu.storyapp.ui.addstory.AddStoryActivity
 import com.ahimsarijalu.storyapp.ui.detailstory.DetailStoryActivity
 import com.ahimsarijalu.storyapp.ui.login.LoginActivity
+import com.ahimsarijalu.storyapp.ui.map.MapsActivity
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -43,12 +43,15 @@ class MainActivity : AppCompatActivity() {
     private fun setupViewModel() {
         mainViewModel = ViewModelProvider(
             this,
-            ViewModelFactory(UserPreference.getInstance(dataStore))
+            ViewModelFactory(UserPreference.getInstance(dataStore), this)
         )[MainViewModel::class.java]
+
+        val layoutManager = LinearLayoutManager(this)
+        binding.rvStory.layoutManager = layoutManager
 
         mainViewModel.getUser().observe(this) { user ->
             if (user.token.isNotEmpty()) {
-                mainViewModel.getStoriesFromApi(this, user.token)
+                showStories()
             } else {
                 Intent(this, LoginActivity::class.java).apply {
                     startActivity(this)
@@ -56,23 +59,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        val layoutManager = LinearLayoutManager(this)
-        binding.rvStory.layoutManager = layoutManager
-
-        mainViewModel.stories.observe(this) { stories ->
-            showStories(stories)
-            if (stories.isEmpty()) {
-                binding.notFound.visibility = View.VISIBLE
-            } else {
-                binding.notFound.visibility = View.GONE
-            }
-        }
-
-        mainViewModel.isLoading.observe(this) {
-            showLoading(it)
-        }
-
     }
 
     private fun setupAction() {
@@ -83,25 +69,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showStories(stories: List<ListStoryItem>) {
-        val listStories = ArrayList<ListStoryItem>()
-        for (story in stories) {
-            listStories.add(
-                ListStoryItem(
-                    id = story.id,
-                    name = story.name,
-                    description = story.description,
-                    photoUrl = story.photoUrl,
-                    createdAt = story.createdAt,
-                    lat = story.lat,
-                    lon = story.lon
-                )
-            )
-        }
-        val listStoryAdapter = MainAdapter(listStories)
-        binding.rvStory.adapter = listStoryAdapter
+    private fun showStories() {
 
-        listStoryAdapter.setOnItemClickCallback(object : MainAdapter.OnItemClickCallback {
+        val adapter = MainAdapter()
+        binding.rvStory.adapter = adapter.withLoadStateFooter(
+            footer = LoadingStateAdapter {
+                adapter.retry()
+            }
+        )
+
+        mainViewModel.stories.observe(this) {
+            adapter.submitData(lifecycle, it)
+        }
+
+        adapter.setOnItemClickCallback(object : MainAdapter.OnItemClickCallback {
             override fun onItemClicked(view: MainAdapter.ListViewHolder, data: ListStoryItem) {
                 showSelectedStory(view, data)
             }
@@ -120,17 +101,10 @@ class MainActivity : AppCompatActivity() {
         startActivity(moveToDetailActivity, optionsCompat.toBundle())
     }
 
-    private fun showLoading(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.visibility = View.VISIBLE
-        } else {
-            binding.progressBar.visibility = View.GONE
-        }
-    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
-        inflater.inflate(R.menu.logout_menu, menu)
+        inflater.inflate(R.menu.options_menu, menu)
         return true
     }
 
@@ -148,9 +122,13 @@ class MainActivity : AppCompatActivity() {
                 }
                 true
             }
+            R.id.btn_map -> {
+                Intent(this, MapsActivity::class.java).apply {
+                    startActivity(this)
+                }
+                true
+            }
             else -> true
         }
     }
-
-
 }

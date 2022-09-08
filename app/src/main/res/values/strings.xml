@@ -28,4 +28,11 @@
     <string name="logout_question">Do you want to logout?</string>
     <string name="cancel_text">Cancel</string>
     <string name="story_not_found">Story not found</string>
+    <string name="retry">Try Again</string>
+    <string name="story_map">Story Map</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="style_parsing_failed">Style parsing failed.</string>
+    <string name="style_not_found_with_error">Can\'t find the style. Error: </string>
+    <string name="add_location">Add Location</string>
+    <string name="lat_long">Lat: %1$f Long: %2$f</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -21,11 +22,19 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
 import com.ahimsarijalu.storyapp.R
 import com.ahimsarijalu.storyapp.createTempFile
-import com.ahimsarijalu.storyapp.data.model.User
-import com.ahimsarijalu.storyapp.data.model.UserPreference
+import com.ahimsarijalu.storyapp.data.Result
+import com.ahimsarijalu.storyapp.data.local.model.User
+import com.ahimsarijalu.storyapp.data.local.model.UserPreference
 import com.ahimsarijalu.storyapp.databinding.ActivityAddStoryBinding
 import com.ahimsarijalu.storyapp.ui.ViewModelFactory
+import com.ahimsarijalu.storyapp.ui.main.MainActivity
 import com.ahimsarijalu.storyapp.uriToFile
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.tasks.Task
 import java.io.File
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -37,6 +46,8 @@ class AddStoryActivity : AppCompatActivity() {
     private lateinit var user: User
 
     private var getFile: File? = null
+
+    private var location: LatLng? = null
 
     private lateinit var currentPhotoPath: String
     private val launcherIntentCamera = registerForActivityResult(
@@ -60,6 +71,7 @@ class AddStoryActivity : AppCompatActivity() {
             binding.previewImage.setImageURI(selectedImg)
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,15 +111,11 @@ class AddStoryActivity : AppCompatActivity() {
     private fun setupViewModel() {
         addStoryViewModel = ViewModelProvider(
             this,
-            ViewModelFactory(UserPreference.getInstance(dataStore))
+            ViewModelFactory(UserPreference.getInstance(dataStore), this)
         )[AddStoryViewModel::class.java]
 
         addStoryViewModel.getUser().observe(this) { user ->
             this.user = user
-        }
-
-        addStoryViewModel.isLoading.observe(this) {
-            showLoading(it)
         }
     }
 
@@ -128,10 +136,41 @@ class AddStoryActivity : AppCompatActivity() {
                 }
                 else -> {
                     addStoryViewModel.uploadImage(
-                        this, getFile, description.toString(), user.token
-                    )
+                        getFile,
+                        description.toString(),
+                        user.token,
+                        location
+                    ).observe(this) { result ->
+                        if (result != null) {
+                            when (result) {
+                                is Result.Error -> {
+                                    binding.progressBar.visibility = View.GONE
+                                    Toast.makeText(this, result.error, Toast.LENGTH_SHORT).show()
+                                }
+                                is Result.Success -> {
+                                    binding.progressBar.visibility = View.GONE
+                                    Toast.makeText(this, result.data.message, Toast.LENGTH_SHORT)
+                                        .show()
+                                    Intent(this, MainActivity::class.java).apply {
+                                        flags =
+                                            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                        startActivity(this)
+                                    }
+                                }
+                                is Result.Loading -> {
+                                    binding.progressBar.visibility = View.VISIBLE
+                                }
+                            }
+                        }
+                    }
                 }
             }
+        }
+
+        binding.tvLocation.visibility = View.GONE
+
+        binding.getLocationBtn.setOnClickListener {
+            getMyLocation()
         }
     }
 
@@ -163,11 +202,50 @@ class AddStoryActivity : AppCompatActivity() {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun showLoading(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.visibility = View.VISIBLE
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                getMyLocation()
+            }
+        }
+
+    private val fusedLocationClient: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(applicationContext)
+    }
+
+    private var cancellationTokenSource = CancellationTokenSource()
+
+    private fun getMyLocation() {
+        if (ContextCompat.checkSelfPermission(
+                this.applicationContext,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val currentLocationTask: Task<Location> = fusedLocationClient.getCurrentLocation(
+                PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.token
+            )
+
+            currentLocationTask.addOnCompleteListener { task: Task<Location> ->
+                if (task.isSuccessful) {
+                    val result: Location = task.result
+                    location = LatLng(result.latitude, result.longitude)
+                    if (location != null) {
+                        binding.tvLocation.apply {
+                            visibility = View.VISIBLE
+                            text = resources.getString(
+                                R.string.lat_long,
+                                location!!.latitude,
+                                location!!.longitude
+                            )
+                        }
+                    }
+                }
+            }
         } else {
-            binding.progressBar.visibility = View.GONE
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 

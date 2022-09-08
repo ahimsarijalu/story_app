@@ -1,25 +1,20 @@
 package com.ahimsarijalu.storyapp.ui.main
 
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.*
-import com.ahimsarijalu.storyapp.data.model.User
-import com.ahimsarijalu.storyapp.data.model.UserPreference
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.ahimsarijalu.storyapp.data.local.model.User
+import com.ahimsarijalu.storyapp.data.local.model.UserPreference
 import com.ahimsarijalu.storyapp.data.remote.response.ListStoryItem
-import com.ahimsarijalu.storyapp.data.remote.response.StoryResponse
-import com.ahimsarijalu.storyapp.data.remote.retrofit.ApiConfig
+import com.ahimsarijalu.storyapp.data.StoryRepository
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
-class MainViewModel(private val pref: UserPreference) : ViewModel() {
-    private val _stories = MutableLiveData<List<ListStoryItem>>()
-    val stories: LiveData<List<ListStoryItem>> = _stories
+class MainViewModel(private val pref: UserPreference, storyRepository: StoryRepository) :
+    ViewModel() {
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    val stories: LiveData<PagingData<ListStoryItem>> = Transformations.switchMap(getUser()) {
+        storyRepository.getStory(it.token).cachedIn(viewModelScope)
+    }
 
     fun getUser(): LiveData<User> {
         return pref.getUser().asLiveData()
@@ -29,28 +24,5 @@ class MainViewModel(private val pref: UserPreference) : ViewModel() {
         viewModelScope.launch {
             pref.logout()
         }
-    }
-
-    fun getStoriesFromApi(context: Context, token: String) {
-        _isLoading.value = true
-        val client = ApiConfig.getApiService().getAllStories("Bearer $token")
-        client.enqueue(object : Callback<StoryResponse> {
-            override fun onResponse(call: Call<StoryResponse>, response: Response<StoryResponse>) {
-                _isLoading.value = false
-                if (response.isSuccessful) {
-                    _stories.value = response.body()?.listStory
-                } else {
-                    val message = response.errorBody()?.string()?.let {
-                        JSONObject(it).getString("message")
-                    }
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<StoryResponse>, t: Throwable) {
-                _isLoading.value = false
-                Toast.makeText(context, t.message.toString(), Toast.LENGTH_SHORT).show()
-            }
-        })
     }
 }

@@ -1,4 +1,4 @@
-package com.ahimsarijalu.storyapp.data.model
+package com.ahimsarijalu.storyapp.data.local.model
 
 data class User(
     val userId: String,

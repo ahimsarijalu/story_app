@@ -14,8 +14,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
 import com.ahimsarijalu.storyapp.R
-import com.ahimsarijalu.storyapp.data.model.User
-import com.ahimsarijalu.storyapp.data.model.UserPreference
+import com.ahimsarijalu.storyapp.data.Result
+import com.ahimsarijalu.storyapp.data.local.model.User
+import com.ahimsarijalu.storyapp.data.local.model.UserPreference
 import com.ahimsarijalu.storyapp.databinding.ActivityLoginBinding
 import com.ahimsarijalu.storyapp.ui.ViewModelFactory
 import com.ahimsarijalu.storyapp.ui.main.MainActivity
@@ -43,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
     private fun setupViewModel() {
         loginViewModel = ViewModelProvider(
             this,
-            ViewModelFactory(UserPreference.getInstance(dataStore))
+            ViewModelFactory(UserPreference.getInstance(dataStore), this)
         )[LoginViewModel::class.java]
 
         loginViewModel.getUser().observe(this) { user ->
@@ -56,10 +57,6 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-
-        loginViewModel.isLoading.observe(this) {
-            showLoading(it)
-        }
     }
 
     private fun setupAction() {
@@ -69,11 +66,26 @@ class LoginActivity : AppCompatActivity() {
             } else {
                 val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
-                loginViewModel.getUserFromApi(
-                    this,
+                loginViewModel.loginUser(
                     binding.emailEditText.text.toString(),
                     binding.passwordEditText.text.toString()
-                )
+                ).observe(this) { result ->
+                    if (result != null) {
+                        when (result) {
+                            is Result.Error -> {
+                                binding.progressBar.visibility = View.GONE
+                                Toast.makeText(this, result.error, Toast.LENGTH_SHORT).show()
+                            }
+                            is Result.Success -> {
+                                binding.progressBar.visibility = View.GONE
+                                loginViewModel.saveUser(result.data.loginResult!!)
+                            }
+                            is Result.Loading -> {
+                                binding.progressBar.visibility = View.VISIBLE
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -108,13 +120,5 @@ class LoginActivity : AppCompatActivity() {
             start()
         }
 
-    }
-
-    private fun showLoading(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.visibility = View.VISIBLE
-        } else {
-            binding.progressBar.visibility = View.GONE
-        }
     }
 }

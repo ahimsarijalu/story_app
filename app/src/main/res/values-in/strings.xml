@@ -29,4 +29,11 @@
     <string name="logout_question">Apakah Anda ingin keluar?</string>
     <string name="cancel_text">Batal</string>
     <string name="story_not_found">Tidak ada Cerita ditemukan</string>
+    <string name="retry">Coba lagi</string>
+    <string name="story_map">Peta Cerita</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="style_parsing_failed">Style gagal dimuat</string>
+    <string name="style_not_found_with_error">Gagal menemukan style. Eror:</string>
+    <string name="add_location">Tambah Lokasi</string>
+    <string name="lat_long">Lat: %1$f Long: %2$f</string>
 </resources>

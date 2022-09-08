@@ -32,7 +32,12 @@ class PasswordEditText : AppCompatEditText, View.OnTouchListener {
     }
 
     private fun init() {
-        setButtonDrawables(startOfTheText = ContextCompat.getDrawable(context, R.drawable.ic_password) as Drawable)
+        setButtonDrawables(
+            startOfTheText = ContextCompat.getDrawable(
+                context,
+                R.drawable.ic_password
+            ) as Drawable
+        )
         compoundDrawablePadding = 24
         clearButtonImage =
             ContextCompat.getDrawable(context, R.drawable.ic_close) as Drawable
@@ -59,11 +64,21 @@ class PasswordEditText : AppCompatEditText, View.OnTouchListener {
 
 
     private fun showClearButton() {
-        setButtonDrawables(startOfTheText = ContextCompat.getDrawable(context, R.drawable.ic_password) as Drawable, endOfTheText = clearButtonImage)
+        setButtonDrawables(
+            startOfTheText = ContextCompat.getDrawable(
+                context,
+                R.drawable.ic_password
+            ) as Drawable, endOfTheText = clearButtonImage
+        )
     }
 
     private fun hideClearButton() {
-        setButtonDrawables(startOfTheText = ContextCompat.getDrawable(context, R.drawable.ic_password) as Drawable)
+        setButtonDrawables(
+            startOfTheText = ContextCompat.getDrawable(
+                context,
+                R.drawable.ic_password
+            ) as Drawable
+        )
     }
 
     private fun setButtonDrawables(
